@@ -16,7 +16,6 @@ import org.apache.hadoop.mapreduce.Mapper.Context;
 import org.apache.hadoop.mapreduce.lib.input.FileInputFormat;
 import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
 
-
 public class Combiner {
 		// To write temperature string and associated value and counts for the same
 		public static class MyWritable implements Writable{
