@@ -132,11 +132,6 @@ public class InMapperCombiner {
 		protected void cleanup(Context context)
 				throws IOException, InterruptedException {
 			for(Entry<Text, double[]> entry : stationRecord.entrySet()) {
-				System.out.println(entry.getKey() + " " +
-						entry.getValue()[0] + " " +
-						entry.getValue()[1] + " " +
-						entry.getValue()[2] + " " +
-						entry.getValue()[3] + " " );
 				// Add local min
 				dataDump.setTemperature(entry.getValue()[1]);
 				dataDump.setCounts(entry.getValue()[0]);
@@ -168,8 +163,6 @@ public class InMapperCombiner {
 
 			for (MyWritable data: values){
 				if(data.getTypeOfTemperature().equals("TMAX")){
-					System.out.println(data.getCounts());
-					System.out.println(data.getTemperature());
 					sumMeanMaxTemp += data.getTemperature();
 					counterforMax += data.getCounts();
 				}else{
@@ -177,8 +170,6 @@ public class InMapperCombiner {
 					counterforMin += data.getCounts();
 				}
 			}
-			System.out.println(sumMeanMaxTemp);
-			System.out.println(counterforMax);
 
 			// Calculate the mean in Reducer.
 			meanMinTemp = sumMeanMinTemp/counterforMin;

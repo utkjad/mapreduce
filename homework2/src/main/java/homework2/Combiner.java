@@ -117,16 +117,12 @@ public class Combiner {
 						counterforMin += 1;
 					}
 				}
-//				System.out.println(sumMeanMaxTemp);
-//				System.out.println(counterforMax);
 				// Update local Max sum, add count
 				stationRecord.setTemperature(sumMeanMaxTemp);
 				stationRecord.setTypeOfTemperature("TMAX");
 				stationRecord.setCounts(counterforMax);
 				context.write(key, stationRecord);
 				
-//				System.out.println(sumMeanMinTemp);
-//				System.out.println(counterforMin);
 				// Update local Min sum, add count
 				stationRecord.setTemperature(sumMeanMinTemp);
 				stationRecord.setTypeOfTemperature("TMIN");
@@ -158,11 +154,6 @@ public class Combiner {
 						counterforMin += data.getCounts();
 					}
 				}
-				System.out.println(sumMeanMinTemp);
-				System.out.println(counterforMin);
-				
-				System.out.println(sumMeanMaxTemp);
-				System.out.println(counterforMax);
 				// Calculate the mean in Reducer.
 				meanMinTemp = sumMeanMinTemp/counterforMin;
 				meanMaxTemp = sumMeanMaxTemp/counterforMax;

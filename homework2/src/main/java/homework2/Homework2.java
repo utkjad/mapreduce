@@ -112,8 +112,6 @@ public class Homework2 {
 			meanMaxTemp = sumMeanMaxTemp/counterforMax;
 			meanMinTemp = sumMeanMinTemp/counterforMin;
 			
-			System.out.println("HARRY");
-			System.out.println(new String(key.toString() + " HP " + meanMaxTemp + " " + meanMinTemp));
 			combinationOfTMAXAndTMIN.set(new String(key.toString() + " " + meanMaxTemp + " " + meanMinTemp));
 			context.write(key, combinationOfTMAXAndTMIN);
 		}
