@@ -97,6 +97,10 @@ public class SecondarySort {
 	
 	/*
 	 * Mapper Class
+	 * 
+	 * Key is comma separated stationID and year Text. 
+	 * Mapper dumps the key and the MyWritable objects as value 
+	 * 
 	 */
 	public static class SecondarySortMapper
 	extends Mapper<Object, Text, Text, MyWritable>{
@@ -112,7 +116,8 @@ public class SecondarySort {
 					String year = new String(collection[1].substring(0, 4));
 					String typeOftemperature =  new String(collection[2]);
 					Double temperature = new Double(Double.parseDouble(collection[3]));
-
+					
+					// Note that the key is comma separated stationID and year
 					Text keyOfStationIDAndYear = new Text(stationID + "," + year);
 
 					// Write it to MyWritable DataDump
@@ -130,6 +135,8 @@ public class SecondarySort {
 
 	/*
 	 *  Partitioner Class
+	 *  
+	 *  partitions according to Station IDs.
 	 */
 	public static class SecondarySortPartitioner extends Partitioner<Text, MyWritable> {
 		@Override
@@ -142,6 +149,9 @@ public class SecondarySort {
 	
 	/*
 	 * KeySort Comparator Class
+	 * 
+	 * KeySort comparison is done both on station ID and the Year, by
+	 * splitting the keys.
 	 */
 	public static class SecondarySortKeySortComparator extends WritableComparator{
 		
@@ -159,7 +169,8 @@ public class SecondarySort {
 
 			String stationID2 = key2.toString().split(",")[0];
 			String year2 = key2.toString().split(",")[1];
-
+			
+			// Compare both station ID and year
 			int result = stationID1.compareTo(stationID2);
 			if(result == 0){
 				return year1.compareTo(year2);
@@ -171,6 +182,9 @@ public class SecondarySort {
 	
 	/*
 	 * Group Comparator Class
+	 * 
+	 * Unlike KeySort Comparator, grouping comparator class compares only the stationID
+	 * This is because we have to group years by stationIDs
 	 */
 	public static class SecondarySortGroupingComparator extends WritableComparator {
 		protected SecondarySortGroupingComparator(){
@@ -185,7 +199,9 @@ public class SecondarySort {
 
 			String stationID1 = key1.toString().split(",")[0];
 			String stationID2 = key2.toString().split(",")[0];
-
+			/*
+			 * Grouping comparator uses only station ID
+			 */
 			return stationID1.compareTo(stationID2);
 		}
 	}
@@ -193,6 +209,13 @@ public class SecondarySort {
 	
 	/*
 	 * Reducer Class
+	 * 
+	 * Aggregates results by year, by station ID using a local HashMap. 
+	 * Because of the grouping comparator, we obviously would get year wise records in ascending order.That is
+	 * there will be no mention about the current stationID from next Iteration.
+	 * We can take benefit of that and save space. 
+	 * 
+	 * The local hashmap will take care of year aggregations and reducer then will dump the output after calculating the mean
 	 */
 	public static class SecondarySortReducer
 	extends Reducer<Text, MyWritable, Text, Text>{

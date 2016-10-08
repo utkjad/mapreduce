@@ -17,7 +17,10 @@ import org.apache.hadoop.mapreduce.lib.input.FileInputFormat;
 import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
 
 public class Combiner {
-		// To write temperature string and associated value and counts for the same
+		/*
+		 * Custom Writable class
+		 *  To write temperature string and associated value and counts for the same
+		 */
 		public static class MyWritable implements Writable{
 			private Double temperature = 0.0;
 			private String typeOfTemp = "";
@@ -71,7 +74,11 @@ public class Combiner {
 			}
 		}
 	
-		// Mapper class
+		/*
+		 * Mapper class 
+		 * 
+		 * Writes the key that is stationID and MyWritable object
+		 */
 		public static class TempretureMapper
 	    extends Mapper<Object, Text, Text, MyWritable>{
 			
@@ -97,10 +104,15 @@ public class Combiner {
 			}
 		}
 		
-		// B. Combiner class
+		/*
+		 * B. Combiner class 
+		 * 
+		 * Combiner calculates local minimum, and local maximum for a partucular station ID at mapper level
+		 */
 		public static class TemperatureCombiner
 	    extends Reducer<Text, MyWritable, Text, MyWritable>{
 			MyWritable stationRecord = new MyWritable();
+			
 			public void reduce(Text key, Iterable<MyWritable> values, Context context) throws IOException, InterruptedException {
 				Double sumMeanMinTemp = 0.0;
 				Double sumMeanMaxTemp = 0.0;
@@ -131,6 +143,12 @@ public class Combiner {
 			}
 		}
 		
+		/*
+		 * Class Reducer
+		 * 
+		 * This class takes input from multiple Combiners which have locally maximum and locally minimum temperature.
+		 * Reducer then aggregates those temperatures and dumps the output in the form of Text.
+		 */
 		public static class TemperatureReducer
 	    extends Reducer<Text, MyWritable, Text, Text>{
 			Text outputRecord = new Text();
@@ -145,6 +163,7 @@ public class Combiner {
 				Double meanMinTemp = 0.0;
 				Double meanMaxTemp = 0.0;
 				
+				// Note that the reducer is adding all local min, and local max
 				for (MyWritable data: values){
 					if(data.getTypeOfTemperature().equals("TMAX")){
 						sumMeanMaxTemp += data.getTemperature();
@@ -154,6 +173,7 @@ public class Combiner {
 						counterforMin += data.getCounts();
 					}
 				}
+				
 				// Calculate the mean in Reducer.
 				meanMinTemp = sumMeanMinTemp/counterforMin;
 				meanMaxTemp = sumMeanMaxTemp/counterforMax;
@@ -164,6 +184,9 @@ public class Combiner {
 			}
 		}
 		
+	/*
+	 * Entry Level main method
+	 */
 	public static void main(String[] args) throws IOException, ClassNotFoundException, InterruptedException{
 		Configuration conf = new Configuration();
 	    Job job = Job.getInstance(conf, "weather temp data with combiner");

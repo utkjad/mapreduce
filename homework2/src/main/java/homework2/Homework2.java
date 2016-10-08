@@ -18,7 +18,13 @@ import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
 
 public class Homework2 {
 	
-	// To write temperature string and associated value
+	/*
+	 * Custom writable class
+	 * Takes care of following-
+	 * 	-Temperature
+	 * 	-Type of temperature 
+	 *  
+	 */
 	public static class MyWritable implements Writable{
 		private Double temperature;
 		private String typeOfTemp;
@@ -60,7 +66,13 @@ public class Homework2 {
 		}
 	}
 	
-	// Mapper class
+	/*
+	 * Mapper class
+	 * 
+	 * Key is station ID and value is the MyWritable object
+	 * Mapper class writes the key i.e. station ID and MyWritable object to the Context
+	 * 
+	 */
 	public static class TempretureMapper
     extends Mapper<Object, Text, Text, MyWritable>{
 		
@@ -86,9 +98,17 @@ public class Homework2 {
 		}
 	}
 	
+	/*
+	 * Reducer class
+	 * 
+	 * Reducer class receives the list of MyWritable class objects ands the key that is station ID
+	 * The Reducer aggregates the temperature values w.r.t. TMAX and TMIN for a particular station
+	 * writes it to a Text. The output text and Key are written to the context
+	 */
 	public static class TempretureReducer
     extends Reducer<Text, MyWritable, Text, Text>{
 		Text combinationOfTMAXAndTMIN = new Text();
+		
 		public void reduce(Text key, Iterable<MyWritable> values, Context context) throws IOException, InterruptedException {
 			Double sumMeanMinTemp = 0.0;
 			Double sumMeanMaxTemp = 0.0;
@@ -99,6 +119,7 @@ public class Homework2 {
 			Double counterforMin = 0.0;
 			Double counterforMax =  0.0;
 			
+			// Aggregate the Sum and counter for the stationID
 			for (MyWritable data: values){
 				if(data.getTypeOfTemperature().equals("TMAX")){
 					sumMeanMaxTemp += data.getTemperature();
@@ -109,6 +130,7 @@ public class Homework2 {
 				}
 			}
 			
+			// Calculate the mean
 			meanMaxTemp = sumMeanMaxTemp/counterforMax;
 			meanMinTemp = sumMeanMinTemp/counterforMin;
 			
@@ -118,6 +140,9 @@ public class Homework2 {
 		
 	}
 	
+	/*
+	 * Entry Level method
+	 */
 	public static void main(String[] args) throws Exception{
 		Configuration conf = new Configuration();
 	    Job job = Job.getInstance(conf, "weather temp data");

@@ -20,7 +20,10 @@ import org.apache.hadoop.mapreduce.lib.input.FileInputFormat;
 import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
 
 public class InMapperCombiner {
-	// To write temperature string and associated value and counts for the same
+	/*
+	 * Custom Writable class
+	 * To write temperature string and associated value and counts for the same
+	 */
 	public static class MyWritable implements Writable{
 		private Double temperature = 0.0;
 		private String typeOfTemp = "";
@@ -74,19 +77,29 @@ public class InMapperCombiner {
 		}
 	}
 
-	// Mapper class
+	/*
+	 * Mapper class
+	 * 
+	 * With the help of hashmap, mapper locally aggregates the tempreture values for a particular station.
+	 */
 	public static class TempretureMapper
 	extends Mapper<Object, Text, Text, MyWritable>{
 		
 		HashMap<Text, double[]> stationRecord;
 		MyWritable dataDump = new MyWritable();
 		
+		/*
+		 * Initialize the HashMap
+		 */
 		protected void setup(Context context)
 			throws IOException, InterruptedException {
 			 // Create HashMap
 			stationRecord =  new HashMap<Text, double[]>();
 		}
 		
+		/*
+		 * Updates the HashMap stationRecord
+		 */
 		@Override
 		public void map(Object key, Text value, Context context) 
 				throws IOException, InterruptedException {
@@ -128,6 +141,9 @@ public class InMapperCombiner {
 			}
 		}
 		
+		/*
+		 * Write minimum and maximum entries separately 
+		 */
 		@Override
 		protected void cleanup(Context context)
 				throws IOException, InterruptedException {
@@ -147,9 +163,15 @@ public class InMapperCombiner {
 		}
 	}
 
+	/*
+	 * Reducer Class
+	 * Takes input from multiple Mappers directly which have locally maximum and minimum values for a particular station.
+	 * The reducer class then aggregates the results
+	 */
 	public static class TemperatureReducer
 	extends Reducer<Text, MyWritable, Text, Text>{
 		Text outputRecord = new Text();
+		
 		public void reduce(Text key, Iterable<MyWritable> values, Context context) throws IOException, InterruptedException {
 
 			Double sumMeanMinTemp = 0.0;
@@ -181,6 +203,9 @@ public class InMapperCombiner {
 		}
 	}
 
+	/*
+	 * Entry Method
+	 */
 	public static void main(String[] args) throws IOException, ClassNotFoundException, InterruptedException{
 		Configuration conf = new Configuration();
 		Job job = Job.getInstance(conf, "weather temp data with combiner");
